@@ -1,0 +1,19 @@
+<svg width="33" height="33" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+   <path
+      d="M11 1.904A.902.902 0 0010.096 1H1.904A.902.902 0 001 1.904v8.192c0 .5.403.904.904.904h8.192c.5 0 .904-.404.904-.904z"
+      paint-order="markers stroke fill" fill-opacity=".1" stroke-opacity=".33" />
+   <path d="M.75 2.676V9.39c0 .476.383.86.86.86h7.782a.857.857 0 00.859-.86V2.677z" fill="#fff" stroke="#000"
+      stroke-width=".5" paint-order="markers stroke fill" />
+   <path d="M1.609.75a.857.857 0 00-.859.859v.818h9.5v-.818a.857.857 0 00-.858-.86z" fill="#5f8dd3" stroke="#000"
+      stroke-width=".5" paint-order="markers stroke fill" />
+   <path d="M.75 9.43a.857.857 0 00.859.818h7.782a.857.857 0 00.858-.818z" fill="#ccc"
+      paint-order="markers stroke fill" />
+   <circle cx="9.436" cy="1.584" r=".506" fill="#214478" paint-order="markers fill stroke" />
+   <circle cx="8.177" cy="1.584" r=".506" fill="#214478" paint-order="markers fill stroke" />
+   <circle cx="6.869" cy="1.584" r=".506" fill="#214478" paint-order="markers fill stroke" />
+   <path d="M4.16 4.94L2.063 6.27l2.93 1.853" fill="none" stroke="#000" stroke-width=".333" stroke-linecap="round"
+      stroke-linejoin="round" />
+   <path d="M4.78 8.93l1.731-5.682" fill="none" stroke="#000" stroke-width=".333" stroke-linecap="round" />
+   <path d="M7.133 7.609l2.096-1.33-3.05-1.928" fill="none" stroke="#000" stroke-width=".333" stroke-linecap="round"
+      stroke-linejoin="round" />
+</svg>

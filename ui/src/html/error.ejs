@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <style>
+        html,
+        body {
+            display: grid;
+            background: #f3f3f3;
+            grid-template-columns: 100% 0;
+            grid-template-rows: 100% 0;
+            align-items: center;
+            justify-items: center;
+            padding: 0;
+            margin: 0;
+            font-family: Roboto, sans-serif;
+            width: 100%;
+            height: 100%;
+        }
+
+        #container {
+            display: grid;
+            width: 580px;
+            color: #333;
+            grid-template-rows: auto;
+            grid-template-columns: 140px 1fr;
+            grid-template-areas:
+                "icon title"
+                "icon subtitle"
+                "icon message"
+                "icon action";
+            column-gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        #icon {
+            grid-area: icon;
+            width: 140px;
+            height: 140px;
+        }
+
+        #icon>svg {
+            width: 100%;
+            height: 100%;
+            fill: #333;
+        }
+
+        #title {
+            grid-area: title;
+            font-size: 65px;
+            font-weight: bold;
+        }
+
+        #subtitle {
+            grid-area: subtitle;
+            font-size: 20px;
+        }
+
+        #message {
+            grid-area: message;
+            color: #AAA;
+            margin: 14px 0;
+        }
+
+        #action {
+            grid-area: action;
+            font-weight: bold;
+        }
+
+        a {
+            text-decoration: none;
+            color: #49C;
+        }
+
+        a:hover,
+        a:active {
+            color: #38B;
+        }
+
+        @media only screen and (max-width: 580px) {
+
+            html,
+            body {
+                width: 100%;
+            }
+
+            #container {
+                width: 100%;
+                grid-template-rows: auto;
+                grid-template-columns: 100%;
+                grid-template-areas:
+                    "icon"
+                    "title"
+                    "subtitle"
+                    "message"
+                    "action";
+                text-align: center;
+                justify-items: center;
+            }
+        }
+    </style>
+    <div id="container">
+        <div id="icon">${icon}</div>
+        <div id="title">${code}</div>
+        <div id="subtitle">${status}</div>
+        <div id="message">${message}</div>
+        <div id="action"><a href="${href}">${action}</a></div>
+    </div>
+</body>
+
+</html>
