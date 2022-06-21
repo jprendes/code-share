@@ -13,17 +13,6 @@ const Compiler = require("./Compiler.js");
 const { DB_ROOT, PARALLEL_RUNS } = require("./config.js");
 const TaskQueue = require("./utils/TaskQueue.js");
 
-async function tryLoad(db, key, onMissing = null, onError = onMissing) {
-    try {
-        return await db.get(key);
-    } catch (err) {
-        if (err.code === "LEVEL_NOT_FOUND") {
-            return onMissing;
-        }
-        return onError;
-    }
-}
-
 function msg(type, payload = {}) {
     return { type, payload };
 }
@@ -58,8 +47,13 @@ class Room extends Observable {
             if (this.#instances.has(name)) continue;
 
             // check if we have the room in disk
-            // eslint-disable-next-line no-await-in-loop
-            if (await tryLoad(this.#db, name, null, true)) continue;
+            try {
+                // eslint-disable-next-line no-await-in-loop
+                const [value] = await Room.#db.getMany([`room/${name}`]);
+                if (value) continue;
+            } catch (e) {
+                continue;
+            }
 
             break;
         }
@@ -74,7 +68,7 @@ class Room extends Observable {
     get name() { return this.#name; }
 
     #save = () => {
-        Room.#db.put(this.name, {
+        Room.#db.put(`room/${this.name}`, {
             compileOutput: this.#compiler.output,
             language: this.#compiler.language,
         });
@@ -91,7 +85,7 @@ class Room extends Observable {
             const [{
                 compileOutput = this.#compiler.output,
                 language = this.#compiler.language,
-            } = {}] = await Room.#db.getMany([this.name]);
+            } = {}] = await Room.#db.getMany([`room/${this.name}`]);
 
             this.#compiler.language = language;
             this.#compiler.output = compileOutput;
