@@ -4,13 +4,13 @@ const {
     adjectives, colors, animals, names,
 } = require("unique-names-generator");
 
-const { Level } = require("level");
+const { load, save } = require("./DB.js");
 const { setupWSConnection, getYDoc } = require("./y-server.js");
 
 const Identity = require("./Identity.js");
 const Compiler = require("./Compiler.js");
 
-const { DB_ROOT, PARALLEL_RUNS } = require("./config.js");
+const { PARALLEL_RUNS } = require("./config.js");
 const TaskQueue = require("./utils/TaskQueue.js");
 
 function msg(type, payload = {}) {
@@ -23,7 +23,6 @@ function send(conn, m) {
 
 class Room extends Observable {
     static #instances = new Map();
-    static #db = new Level(DB_ROOT, { valueEncoding: "json" });
     static #queue = new TaskQueue(PARALLEL_RUNS);
 
     static byName(name) {
@@ -49,7 +48,7 @@ class Room extends Observable {
             // check if we have the room in disk
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const [value] = await Room.#db.getMany([`room/${name}`]);
+                const value = await load(`room/${name}`);
                 if (value) continue;
             } catch (e) {
                 continue;
@@ -68,7 +67,7 @@ class Room extends Observable {
     get name() { return this.#name; }
 
     #save = () => {
-        Room.#db.put(`room/${this.name}`, {
+        save(`room/${this.name}`, {
             compileOutput: this.#compiler.output,
             language: this.#compiler.language,
         });
@@ -82,10 +81,11 @@ class Room extends Observable {
         }
 
         try {
-            const [{
+            const stored = await load(`room/${this.name}`);
+            const {
                 compileOutput = this.#compiler.output,
                 language = this.#compiler.language,
-            } = {}] = await Room.#db.getMany([`room/${this.name}`]);
+            } = stored || {};
 
             this.#compiler.language = language;
             this.#compiler.output = compileOutput;
