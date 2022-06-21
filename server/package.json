@@ -10,6 +10,7 @@
         "@material-icons/svg": "^1.0.28",
         "cookie": "^0.5.0",
         "do_username": "^0.0.2",
+        "google-auth-library": "^8.0.2",
         "http-proxy": "^1.18.1",
         "level": "^8.0.0",
         "lib0": "^0.2.51",

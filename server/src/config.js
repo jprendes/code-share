@@ -11,6 +11,7 @@ const UI_TITLE = env.UI_TITLE || "Code Share";
 const PARALLEL_RUNS = parseInt(env.PARALLEL_RUNS, 10) || 32;
 const HOST = env.HOST || "0.0.0.0";
 const PORT = parseInt(env.PORT, 10) || 8080;
+const GAPI_CLIENT_ID = env.GAPI_CLIENT_ID || "";
 
 module.exports = {
     DB_ROOT,
@@ -22,4 +23,5 @@ module.exports = {
     PARALLEL_RUNS,
     HOST,
     PORT,
+    GAPI_CLIENT_ID,
 };
