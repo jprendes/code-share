@@ -6,6 +6,10 @@ class Proxy {
     #proxy = null;
 
     constructor(opts) {
+        // set default onError handlers
+        this.onError(null);
+        this.onWsError(null);
+
         this.#proxy = httpProxy.createProxyServer({
             ws: true,
             target: { host: "localhost", port: 8080 },
@@ -57,6 +61,7 @@ class Proxy {
         wait(socket).then(resolve);
         req.url = options.path || req.url;
         this.#proxy.ws(req, socket, head, options, async (err) => {
+            console.log(err);
             await onError(req, socket, head, { err });
             resolve();
         });
