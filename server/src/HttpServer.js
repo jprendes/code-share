@@ -1,8 +1,10 @@
 /* eslint-disable max-classes-per-file */
-const { createServer, ServerResponse, STATUS_CODES } = require("http");
+const { createServer: createHttpServer, ServerResponse, STATUS_CODES } = require("http");
+const { createServer: createHttpsServer } = require("https");
 const { Server: WsServer, WebSocket } = require("ws");
 const { match } = require("path-to-regexp");
 const { Duplex } = require("stream");
+const selfsigned = require("selfsigned");
 
 function massageRoute(route) {
     let f = route;
@@ -39,6 +41,7 @@ class HttpServer {
     #logError = null;
 
     constructor({
+        https = false,
         logError = () => { },
     } = {}) {
         this.#logError = logError;
@@ -65,7 +68,17 @@ class HttpServer {
         this.#fallback_handlers = this.#handlers;
         this.#handlers = [];
 
-        this.#init(createServer());
+        if (https === true) {
+            const pems = selfsigned.generate([], { days: 365 });
+            this.#init(createHttpsServer({
+                key: pems.private,
+                cert: pems.cert,
+            }));
+        } else if (https) {
+            this.#init(createHttpsServer(https));
+        } else {
+            this.#init(createHttpServer());
+        }
     }
 
     http(route, handler) {

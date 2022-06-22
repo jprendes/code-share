@@ -13,10 +13,11 @@ const { verify } = require("./Login.js");
 const Room = require("./Room.js");
 
 const {
-    UI_ROOT, UI_HOST, UI_PORT, HOST, PORT,
+    UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT,
 } = require("./config.js");
 
 const server = new HttpServer({
+    https: HTTPS,
     logError: console.error,
 });
 

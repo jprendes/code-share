@@ -17,6 +17,7 @@
         "mime-types": "^2.1.35",
         "node-pty": "^0.10.1",
         "path-to-regexp": "^6.2.1",
+        "selfsigned": "^2.0.1",
         "unique-names-generator": "^4.7.1",
         "uuid": "^8.3.2",
         "ws": "^8.6.0",
