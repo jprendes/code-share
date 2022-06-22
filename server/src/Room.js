@@ -4,7 +4,7 @@ const {
     adjectives, colors, animals, names,
 } = require("unique-names-generator");
 
-const { load, save } = require("./DB.js");
+const DB = require("./DB.js");
 const { setupWSConnection, getYDoc } = require("./y-server.js");
 
 const Identity = require("./Identity.js");
@@ -20,6 +20,8 @@ function msg(type, payload = {}) {
 function send(conn, m) {
     conn.send(JSON.stringify(m));
 }
+
+const db = new DB("room");
 
 class Room extends Observable {
     static #instances = new Map();
@@ -48,7 +50,7 @@ class Room extends Observable {
             // check if we have the room in disk
             try {
                 // eslint-disable-next-line no-await-in-loop
-                const value = await load(`room/${name}`);
+                const value = await db.get(name);
                 if (value) continue;
             } catch (e) {
                 continue;
@@ -67,7 +69,7 @@ class Room extends Observable {
     get name() { return this.#name; }
 
     #save = () => {
-        save(`room/${this.name}`, {
+        db.set(this.name, {
             compileOutput: this.#compiler.output,
             language: this.#compiler.language,
         });
@@ -81,7 +83,7 @@ class Room extends Observable {
         }
 
         try {
-            const stored = await load(`room/${this.name}`);
+            const stored = await db.set(this.name);
             const {
                 compileOutput = this.#compiler.output,
                 language = this.#compiler.language,
