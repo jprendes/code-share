@@ -20,10 +20,12 @@ class Auth extends Observable {
             if (!this.#user?.eq(user)) {
                 this.#user = user;
                 this.emit("change", [this.#user]);
+                this.emit("login", [this.#user]);
             }
         } else if (this.#user) {
             this.#user = null;
             this.emit("change", [this.#user]);
+            this.emit("logout", [this.#user]);
         }
     };
 
@@ -33,6 +35,7 @@ class Auth extends Observable {
     }
 
     #init = async () => {
+        this.query();
         this.#google = await google;
         this.#id = this.#google.accounts.id;
         this.#id.initialize({
@@ -41,7 +44,6 @@ class Auth extends Observable {
             auto_select: true,
             login_uri: globalThis.location.origin,
         });
-        await this.query();
         delete this.then;
         this.emit("loaded", []);
     };
