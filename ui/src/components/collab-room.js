@@ -12,6 +12,9 @@ import "@spectrum-web-components/toast/sp-toast.js";
 import "./collab-identities-list.js";
 import "./collab-compile-btn.js";
 import "./collab-language-btns.js";
+import "./collab-login.js";
+
+import auth from "../utils/Auth.js";
 
 import favicon from "../../favicon.svg";
 
@@ -31,7 +34,7 @@ class CollabRoom extends LitElement {
             padding-bottom: 10px;
             display: grid;
             grid-template-rows: 100%;
-            grid-template-columns: auto minmax(0, 1fr) auto;
+            grid-template-columns: auto minmax(0, 1fr) auto auto;
             align-items: center;
         }
 
@@ -50,6 +53,11 @@ class CollabRoom extends LitElement {
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+        }
+
+        collab-login {
+            margin-left: 10px;
+            display: inline-block;
         }
 
         #content {
@@ -160,6 +168,12 @@ class CollabRoom extends LitElement {
         }
     `;
 
+    constructor() {
+        super();
+        auth.on("change", this.#requestUpdate);
+        auth.on("loaded", this.#requestUpdate);
+    }
+
     static properties = {
         room: { type: Object },
     };
@@ -219,6 +233,9 @@ class CollabRoom extends LitElement {
                     </div>
                     <div id="room-name">${this.#room?.name || ""}</div>
                     <collab-identities-list .room=${this.#room}></collab-identities-list>
+                    ${!auth.authorized ? html`` : html`
+                        <collab-login></collab-login>
+                    `}
                 </div>
                 <div id="content">
                     <div id="text">
