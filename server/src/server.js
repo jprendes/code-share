@@ -11,6 +11,7 @@ const ErrorPage = require("./ErrorPage.js");
 const Room = require("./Room.js");
 
 const cookie = require("./utils/cookie.js");
+const sendJSON = require("./utils/sendJSON.js");
 
 const {
     UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT, GAPI_CLIENT_ID,
@@ -68,6 +69,11 @@ server.http("error/invalid-room", async (req, res) => {
         message: "Room names must be at least 4 letters long.",
         action: "Start a new room",
     });
+});
+
+server.http("~/has/:roomName", async (req, res, { roomName }) => {
+    const exists = await Room.has(roomName);
+    sendJSON(res, exists);
 });
 
 server.http("~/room/:roomName/:path(.*)?", (req, res, { roomName, path = "" }) => {

@@ -35,6 +35,20 @@ class Room extends Observable {
         return this.#instances.get(name);
     }
 
+    static async has(name) {
+        // check if we have the room in memory
+        if (this.#instances.has(name)) return true;
+
+        try {
+            // check if we have the room in disk
+            return !!await db.get(name);
+        } catch (e) {
+            // error loading room, probably it exists
+            // but it's corrupted or something
+            return true;
+        }
+    }
+
     static async withUniqueName() {
         let name = "";
         // eslint-disable-next-line no-constant-condition
@@ -44,19 +58,8 @@ class Room extends Observable {
                 style: "lowerCase",
             }).replace(/_/g, "-");
 
-            // check if we have the room in memory
-            if (this.#instances.has(name)) continue;
-
-            // check if we have the room in disk
-            try {
-                // eslint-disable-next-line no-await-in-loop
-                const value = await db.get(name);
-                if (value) continue;
-            } catch (e) {
-                continue;
-            }
-
-            break;
+            // eslint-disable-next-line no-await-in-loop
+            if (!await this.has(name)) break;
         }
 
         return this.byName(name);
@@ -83,7 +86,7 @@ class Room extends Observable {
         }
 
         try {
-            const stored = await db.set(this.name);
+            const stored = await db.get(this.name);
             const {
                 compileOutput = this.#compiler.output,
                 language = this.#compiler.language,
@@ -93,6 +96,7 @@ class Room extends Observable {
             this.#compiler.output = compileOutput;
         } catch (e) {
             console.warn(`Error loading room ${this.name} from the database`);
+            console.warn(e);
         }
 
         this.broadcast(this.#languageMessage());
