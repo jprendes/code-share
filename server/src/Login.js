@@ -7,18 +7,18 @@ async function verify(token) {
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: GAPI_CLIENT_ID,
+            requiredAudience: GAPI_CLIENT_ID,
         });
         const payload = ticket.getPayload();
         const {
-            // sub: userid,
+            sub: id,
             hd: domain,
             email,
             name,
             picture: photo,
         } = payload;
         return {
-            domain, email, name, photo,
+            id, domain, email, name, photo,
         };
     } catch (err) {
         console.warn(err);
