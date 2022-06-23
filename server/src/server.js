@@ -50,7 +50,7 @@ function session(req, res) {
     return sess;
 }
 
-server.http("/room/new", async (req, res) => {
+server.http("/new-room", async (req, res) => {
     const room = await Room.withUniqueName();
     res.writeHead(200);
     res.end(room.name);

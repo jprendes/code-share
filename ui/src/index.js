@@ -15,7 +15,7 @@ import "./components/collab-quill-editor.js";
 
 async function main() {
     async function makeRoomName() {
-        const name = await (await fetch("/room/new")).text();
+        const name = await (await fetch("/new-room")).text();
         global.history.pushState({}, "", `/room/${name}`);
         return name;
     }
