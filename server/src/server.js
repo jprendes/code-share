@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const { uuidv4 } = require("lib0/random");
-const cookie = require("cookie");
 
 const HttpServer = require("./HttpServer.js");
 const Proxy = require("./Proxy.js");
@@ -11,6 +10,8 @@ const ErrorPage = require("./ErrorPage.js");
 const { verify } = require("./Login.js");
 
 const Room = require("./Room.js");
+
+const cookie = require("./utils/cookie.js");
 
 const {
     UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT,
@@ -37,12 +38,11 @@ ui.onError((req, res, { code, err }) => {
 });
 
 function session(req, res) {
-    const cookies = cookie.parse(req.headers?.cookie || "");
-    if (cookies.session) return cookies.session;
-    if (!res) return null;
-    const id = uuidv4();
-    res.setHeader("Set-Cookie", `session=${id}; SameSite=Strict; HttpOnly; Path=/; Max-Age=${60 * 60 * 24 * 30}`);
-    return id;
+    let sess = cookie.get(req, "session") || null;
+    if (!res) return sess;
+    sess = sess || uuidv4();
+    cookie.set(res, "session", sess);
+    return sess;
 }
 
 server.http("/room/new", async (req, res) => {
