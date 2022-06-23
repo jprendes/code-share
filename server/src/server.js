@@ -33,10 +33,13 @@ if (UI_ROOT) {
     errorPage = ErrorPage.fromHttpServer(UI_HOST, UI_PORT);
 }
 
-ui.onError((req, res, { code, err }) => {
+function errorHandler(req, res, { code, err }) {
     if (err) console.error(err);
     return server.serve(`error/${code}`, req, res);
-});
+}
+
+auth.onError(errorHandler);
+ui.onError(errorHandler);
 
 function session(req, res) {
     let sess = cookie.get(req, "session") || null;
