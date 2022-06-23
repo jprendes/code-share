@@ -1,16 +1,9 @@
 const { STATUS_CODES } = require("http");
 const { Observable } = require("lib0/observable");
 const cookie = require("./utils/cookie.js");
+const sendJSON = require("./utils/sendJSON.js");
 
 const Users = require("./Users.js");
-
-function sendJSON(res, val) {
-    res.writeHead(200, {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache, no-store, max-age=0, must-revalidate",
-    });
-    res.end(JSON.stringify(val));
-}
 
 class Auth extends Observable {
     #users = new Users();
@@ -66,6 +59,10 @@ class Auth extends Observable {
         const uuid = cookie.get(req, "identity");
         const user = this.#users.byUuid(uuid);
         return user || null;
+    }
+
+    authorized(req) {
+        return !!this.user(req);
     }
 
     #serve_login = async (req, res) => {
