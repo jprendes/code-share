@@ -9,8 +9,10 @@
     },
     "dependencies": {
         "@fontsource/roboto": "^4.5.7",
+        "@material-icons/svg": "^1.0.28",
         "@spectrum-web-components/action-button": "^0.8.4",
         "@spectrum-web-components/button": "^0.17.4",
+        "@spectrum-web-components/divider": "^0.4.9",
         "@spectrum-web-components/icons-workflow": "^0.8.7",
         "@spectrum-web-components/overlay": "^0.16.1",
         "@spectrum-web-components/popover": "^0.11.14",

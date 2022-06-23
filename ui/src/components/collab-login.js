@@ -7,6 +7,7 @@ import "@spectrum-web-components/action-button/sp-action-button.js";
 import "@spectrum-web-components/overlay/overlay-trigger.js";
 import "@spectrum-web-components/popover/sp-popover.js";
 import "@spectrum-web-components/tooltip/sp-tooltip.js";
+import "@spectrum-web-components/divider/sp-divider.js";
 
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-play.js";
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-close.js";
@@ -20,7 +21,11 @@ class CollabLogin extends LitElement {
         }
 
         #container {
-            display: inline-block;
+            display: grid;
+            grid-template-rows: minmax(0, auto) 0;
+            grid-template-columns: minmax(0, auto) 0;
+            align-items: center;
+            justify-items: center;
         }
 
         #glogo {
@@ -41,6 +46,13 @@ class CollabLogin extends LitElement {
             height: 32px;
             border-radius: 100%;
             border: 2px solid #666;
+            cursor: pointer;
+        }
+
+        overlay-trigger {
+            display: grid;
+            align-items: center;
+            justify-items: center;
         }
     `;
 
@@ -62,14 +74,15 @@ class CollabLogin extends LitElement {
         if (auth.authorized) {
             btn = html`
                 <overlay-trigger placement="bottom" offset="0">
-                    <div slot="trigger">
-                        <img id="avatar" src=${user.photo}></img>
-                    </div>
-                    <sp-popover dialog slot="click-content" direction="bottom" tip>
+                    <img id="avatar" slot="trigger" src=${user.photo}></img>
+                    <sp-popover slot="click-content" direction="bottom" tip>
                         <div id="login-popover-content" style="text-align: center;">
-                            <div style="font-weight: bold; font-size: 1.3em;">${user.name}</div>
-                            <div style="font-size: 0.8em; color: #888;">${user.email}</div>
-                            <div style="margin-top: 30px;">
+                            <div id="upper-panel" style="padding: 20px 30px; text-align: center;">
+                                <div style="font-weight: bold; font-size: 1.3em;">${user.name}</div>
+                                <div style="font-size: 0.8em; color: #888;">${user.email}</div>
+                            </div>
+                            <sp-divider size="s"></sp-divider>
+                            <div id="lower-panel" style="padding: 20px 30px; text-align: center;">
                                 <sp-action-button id="logout"
                                     style=${redBtnStyle}
                                     quiet
