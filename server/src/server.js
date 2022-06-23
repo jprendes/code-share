@@ -52,6 +52,10 @@ function session(req, res) {
 }
 
 server.http("/new-room", async (req, res) => {
+    if (!auth.authorized(req)) {
+        await server.serve("error/403", req, res);
+        return;
+    }
     const room = await Room.withUniqueName();
     res.writeHead(200);
     res.end(room.name);
@@ -99,6 +103,11 @@ server.ws("~/doc/:docName", async (conn, req, { docName }) => {
     }
 
     if (docName.length < 4) {
+        conn.close();
+        return;
+    }
+
+    if (!auth.authorized(req) && !await Room.has(docName)) {
         conn.close();
         return;
     }
