@@ -17,7 +17,7 @@ function del(res, name) {
     const cookies = [].concat(res.getHeader("Set-Cookie")).filter(Boolean).filter((c) => c.startsWith(`${name}=`));
     res.setHeader("Set-Cookie", [
         ...cookies,
-        `${name}=FALSE; SameSite=Strict; Path=/; Expires=${new Date(0).toUTCString()}`,
+        `${name}=; SameSite=Strict; Path=/; Expires=${new Date(0).toUTCString()}`,
     ]);
 }
 
