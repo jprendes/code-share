@@ -17,6 +17,8 @@ class Auth extends Observable {
 
     constructor() {
         super();
+        // set default onError handler
+        this.onError(null);
         this.#init();
     }
 
@@ -50,12 +52,13 @@ class Auth extends Observable {
 
     #handlers = null;
 
-    serve(req, res, options = {}) {
+    async serve(req, res, options = {}) {
         const path = decodeURIComponent(options.path || req.url);
         const handler = this.#handlers[path];
         if (!handler) {
             return this.#onError(req, res, { code: 404, status: STATUS_CODES[404] });
         }
+        await this.#users;
         return handler(req, res);
     }
 
@@ -94,7 +97,7 @@ class Auth extends Observable {
     };
 
     #serve_query = async (req, res) => {
-        const user = this.get(req);
+        const user = this.user(req);
         if (!user) {
             await this.#serve_logout();
             return;
