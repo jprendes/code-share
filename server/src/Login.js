@@ -7,7 +7,7 @@ async function verify(token) {
     try {
         const ticket = await client.verifyIdToken({
             idToken: token,
-            requiredAudience: GAPI_CLIENT_ID,
+            requiredAudience: `${GAPI_CLIENT_ID}.apps.googleusercontent.com`,
         });
         const payload = ticket.getPayload();
         const {

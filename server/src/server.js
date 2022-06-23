@@ -13,7 +13,7 @@ const Room = require("./Room.js");
 const cookie = require("./utils/cookie.js");
 
 const {
-    UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT,
+    UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT, GAPI_CLIENT_ID,
 } = require("./config.js");
 
 const server = new HttpServer({
@@ -45,6 +45,7 @@ function session(req, res) {
     let sess = cookie.get(req, "session") || null;
     if (!res) return sess;
     sess = sess || uuidv4();
+    cookie.set(res, "gcid", GAPI_CLIENT_ID);
     cookie.set(res, "session", sess);
     return sess;
 }
