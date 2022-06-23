@@ -10,7 +10,7 @@ class DB {
         if (!name) {
             this.#db = db;
         } else {
-            this.#db = db.sublevel(name);
+            this.#db = db.sublevel(name, { valueEncoding: "json" });
         }
     }
 
@@ -25,6 +25,18 @@ class DB {
 
     delete(key) {
         this.#db.del(key);
+    }
+
+    iterator() {
+        return this.#db.iterator();
+    }
+
+    keys() {
+        return this.#db.keys();
+    }
+
+    values() {
+        return this.#db.values();
     }
 }
 
