@@ -80,7 +80,7 @@ class Auth extends Observable {
         const user = token && await this.#users.fromToken(token);
 
         if (!user) {
-            await this.#serve_logout();
+            await this.#serve_logout(req, res);
             return;
         }
 
@@ -93,13 +93,13 @@ class Auth extends Observable {
     // eslint-disable-next-line class-methods-use-this
     #serve_logout = async (req, res) => {
         cookie.delete(res, "identity");
-        sendJSON(null);
+        sendJSON(res, null);
     };
 
     #serve_query = async (req, res) => {
         const user = this.user(req);
         if (!user) {
-            await this.#serve_logout();
+            await this.#serve_logout(req, res);
             return;
         }
         const { id, uuid, ...rest } = user;
