@@ -5,7 +5,7 @@ import "@spectrum-web-components/action-button/sp-action-button.js";
 
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-play.js";
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-close.js";
-import redBtnStyle from "../utils/redBtnStyle";
+import redBtnStyle from "../utils/redBtnStyle.js";
 
 class CollabCompileBtn extends LitElement {
     static styles = css`
