@@ -6,7 +6,7 @@ function get(req, name) {
 }
 
 function set(res, name, value, maxDays = 30) {
-    const cookies = [].concat(res.getHeader("Set-Cookie")).filter(Boolean).filter((c) => c.startsWith(`${name}=`));
+    const cookies = [].concat(res.getHeader("Set-Cookie")).filter(Boolean).filter((c) => !c.startsWith(`${name}=`));
     res.setHeader("Set-Cookie", [
         ...cookies,
         `${name}=${value}; SameSite=Strict; Path=/; Max-Age=${3600 * 24 * maxDays}`,
@@ -14,7 +14,7 @@ function set(res, name, value, maxDays = 30) {
 }
 
 function del(res, name) {
-    const cookies = [].concat(res.getHeader("Set-Cookie")).filter(Boolean).filter((c) => c.startsWith(`${name}=`));
+    const cookies = [].concat(res.getHeader("Set-Cookie")).filter(Boolean).filter((c) => !c.startsWith(`${name}=`));
     res.setHeader("Set-Cookie", [
         ...cookies,
         `${name}=; SameSite=Strict; Path=/; Expires=${new Date(0).toUTCString()}`,
