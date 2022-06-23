@@ -5,6 +5,7 @@ import "@spectrum-web-components/action-button/sp-action-button.js";
 
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-play.js";
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-close.js";
+import redBtnStyle from "../utils/redBtnStyle";
 
 class CollabCompileBtn extends LitElement {
     static styles = css`
@@ -90,6 +91,7 @@ class CollabCompileBtn extends LitElement {
                     ></sp-progress-circle>
                     ${!this.#room.queued ? "Running..." : "Queued..."}
                     <sp-action-button id="cancel"
+                        style=${redBtnStyle}
                         quiet
                         emphasized
                         selected
