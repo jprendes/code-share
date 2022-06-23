@@ -6,6 +6,10 @@ const { match } = require("path-to-regexp");
 const { Duplex } = require("stream");
 const selfsigned = require("selfsigned");
 
+const DB = require("./DB.js");
+
+const db = new DB("config");
+
 function massageRoute(route) {
     let f = route;
     if (typeof route === "string") {
@@ -28,6 +32,22 @@ function isClosed(conn) {
     if (conn instanceof WebSocket) return ![conn.CLOSING, conn.CLOSED].includes(conn.readyState);
     if (conn instanceof Duplex) return conn.writableEnded;
     throw new Error("Expected http response, WebSocket, or duplex socket");
+}
+
+async function certificates(cn = "example.com") {
+    const persisted = await db.get("certificates");
+    if (persisted) return persisted;
+
+    const pems = selfsigned.generate([{
+        name: "commonName",
+        value: cn,
+    }], { days: 365 });
+    const certs = {
+        key: pems.private,
+        cert: pems.cert,
+    };
+    db.set("certificates", certs);
+    return certs;
 }
 
 class HttpServer {
@@ -68,17 +88,7 @@ class HttpServer {
         this.#fallback_handlers = this.#handlers;
         this.#handlers = [];
 
-        if (https === true) {
-            const pems = selfsigned.generate([], { days: 365 });
-            this.#init(createHttpsServer({
-                key: pems.private,
-                cert: pems.cert,
-            }));
-        } else if (https) {
-            this.#init(createHttpsServer(https));
-        } else {
-            this.#init(createHttpServer());
-        }
+        this.#initialized = this.#init(https);
     }
 
     http(route, handler) {
@@ -161,8 +171,16 @@ class HttpServer {
         return doUpgrade;
     };
 
-    #init = (server) => {
-        this.#server = server;
+    #initialized = null;
+    #init = async (https) => {
+        if (https === true) {
+            this.#server = createHttpsServer(await certificates());
+        } else if (https) {
+            this.#server = createHttpsServer(https);
+        } else {
+            this.#server = createHttpServer();
+        }
+
         this.#wss = new WsServer({ noServer: true });
 
         this.#server.on("request", async (req, res) => {
@@ -220,7 +238,8 @@ class HttpServer {
         });
     };
 
-    listen(opts = {}) {
+    async listen(opts = {}) {
+        await this.#initialized;
         this.#server.listen({
             host: "0.0.0.0",
             port: 8080,
