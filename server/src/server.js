@@ -5,9 +5,8 @@ const { uuidv4 } = require("lib0/random");
 const HttpServer = require("./HttpServer.js");
 const Proxy = require("./Proxy.js");
 const Static = require("./Static.js");
+const Auth = require("./Auth.js");
 const ErrorPage = require("./ErrorPage.js");
-
-const { verify } = require("./Login.js");
 
 const Room = require("./Room.js");
 
@@ -21,6 +20,8 @@ const server = new HttpServer({
     https: HTTPS,
     logError: console.error,
 });
+
+const auth = new Auth();
 
 let ui;
 let errorPage;
@@ -73,23 +74,7 @@ server.http("~/room/:roomName/:path(.*)?", (req, res, { roomName, path = "" }) =
 
 server.upgrade("/ws", (req, socket, head) => ui.serve(req, socket, head, {}));
 
-server.http("/auth/login", async (req, res) => {
-    session(req, res);
-    const body = await new Promise((resolve, reject) => {
-        const chunks = [];
-        req.on("data", (fragments) => chunks.push(fragments));
-        req.on("end", () => resolve(Buffer.concat(chunks).toString()));
-        req.on("error", reject);
-    });
-    const { token } = JSON.parse(body);
-    const user = verify(token);
-    if (!user) {
-        await server.serve("error/403", req, res);
-        return;
-    }
-    res.writeHead(200);
-    res.end(JSON.stringify(user));
-});
+server.http("~/auth/:path(.*)?", (req, res) => auth.serve(req, res));
 
 server.http("~/:path(.*)", (req, res) => {
     session(req, res);
