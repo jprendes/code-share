@@ -97,7 +97,6 @@ module.exports = {
         port: 8088,
         client: {
             overlay: true,
-            progress: true,
             webSocketURL: "auto://0.0.0.0:0/ws",
         },
     }
