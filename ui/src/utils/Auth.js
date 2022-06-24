@@ -72,14 +72,15 @@ class Auth extends Observable {
     }
 
     async logout() {
-        await fetch("/auth/logout");
+        document.cookie = "identity=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         this.#google.accounts.id.disableAutoSelect();
         this.#setUser(null);
     }
 
     async query() {
-        const res = await fetch("/auth/query");
-        this.#setUser(await res.json());
+        const user = await (await fetch("/auth/query")).json();
+        this.#setUser(user);
+        return user;
     }
 
     get authorized() {
