@@ -3,39 +3,52 @@ import { Observable } from "lib0/observable";
 import google from "./gsi.js";
 import User from "./User.js";
 
-const CLIENT_ID_BASE = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith("gcid="))
-    ?.split("=")[1];
+import * as cookie from "./cookie.js";
+import * as storage from "./storage.js";
+
+const CLIENT_ID_BASE = cookie.get("gcid");
 const CLIENT_ID = `${CLIENT_ID_BASE}.apps.googleusercontent.com`;
 
 class Auth extends Observable {
     #google = null;
     #id = null;
 
+    // eslint-disable-next-line class-methods-use-this
     #user = null;
-    #setUser = (user) => {
-        if (user) {
-            user = new User(user);
-            if (!this.#user?.eq(user)) {
-                this.#user = user;
-                this.emit("change", [this.#user]);
-                this.emit("login", [this.#user]);
-            }
-        } else if (this.#user) {
-            this.#user = null;
-            this.emit("change", [this.#user]);
-            this.emit("logout", [this.#user]);
-        }
-    };
 
     constructor() {
         super();
         this.#init();
+        storage.onchange(this.#onChange);
+        this.#onChange();
     }
 
+    #onChange = () => {
+        const user = storage.get("identity");
+        const changed = !User.eq(user, this.#user);
+
+        if (!user) {
+            cookie.del("identity");
+
+            if (changed) {
+                this.#user = null;
+                this.emit("logout", []);
+                this.emit("changed", []);
+            }
+        } else {
+            // always update the cookies, it doesn't hurt
+            // and helps ensure the cookies are in sync.
+            cookie.set("identity", user.uuid);
+
+            if (changed) {
+                this.#user = new User(user);
+                this.emit("login", []);
+                this.emit("changed", []);
+            }
+        }
+    };
+
     #init = async () => {
-        this.query();
         this.#google = await google;
         this.#id = this.#google.accounts.id;
         this.#id.initialize({
@@ -48,13 +61,13 @@ class Auth extends Observable {
         this.emit("loaded", []);
     };
 
+    // eslint-disable-next-line class-methods-use-this
     #handleCredentialResponse = async (response) => {
-        const res = await fetch("/auth/login", {
+        storage.set("identity", await (await fetch("/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: response.credential }),
-        });
-        this.#setUser(await res.json());
+        })).json());
     };
 
     get loaded() { return !!this.#id; }
@@ -67,20 +80,21 @@ class Auth extends Observable {
     login() {
         if (!this.loaded) return;
         // Clear the g_state cookie to avoid a potential exponential cooldown.
-        document.cookie = "g_state=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+        cookie.del("g_state");
         this.#id.prompt();
     }
 
     async logout() {
-        document.cookie = "identity=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         this.#google.accounts.id.disableAutoSelect();
-        this.#setUser(null);
+        storage.set("identity", null);
     }
 
-    async query() {
-        const user = await (await fetch("/auth/query")).json();
-        this.#setUser(user);
-        return user;
+    syncCookie() {
+        if (this.authorized) {
+            cookie.set("identity", this.user.uuid);
+        } else {
+            cookie.del("identity");
+        }
     }
 
     get authorized() {
