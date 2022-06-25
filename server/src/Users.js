@@ -44,7 +44,6 @@ class Users extends Observable {
 
         if (!persisted) {
             user.uuid = uuidv4();
-            console.log(user);
             this.#byId.set(user.id, user);
             this.#byUuid.set(user.uuid, user);
             db.set(user.id, user);

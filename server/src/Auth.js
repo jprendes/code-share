@@ -83,8 +83,7 @@ class Auth extends Observable {
 
         cookie.set(res, "identity", user.uuid);
 
-        const { id, uuid, ...rest } = user;
-        sendJSON(res, rest);
+        sendJSON(res, user);
     };
 
     // eslint-disable-next-line class-methods-use-this
@@ -99,8 +98,7 @@ class Auth extends Observable {
             await this.#serve_logout(req, res);
             return;
         }
-        const { id, uuid, ...rest } = user;
-        sendJSON(res, rest);
+        sendJSON(res, user);
     };
 }
 
