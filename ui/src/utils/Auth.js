@@ -13,7 +13,6 @@ class Auth extends Observable {
     #google = null;
     #id = null;
 
-    // eslint-disable-next-line class-methods-use-this
     #user = null;
 
     constructor() {
@@ -33,7 +32,7 @@ class Auth extends Observable {
             if (changed) {
                 this.#user = null;
                 this.emit("logout", []);
-                this.emit("changed", []);
+                this.emit("change", []);
             }
         } else {
             // always update the cookies, it doesn't hurt
@@ -43,10 +42,21 @@ class Auth extends Observable {
             if (changed) {
                 this.#user = new User(user);
                 this.emit("login", []);
-                this.emit("changed", []);
+                this.emit("change", []);
             }
         }
     };
+
+    #save(identity) {
+        if (identity) {
+            storage.set("identity", identity);
+            cookie.set("identity", identity.uuid);
+        } else {
+            storage.del("identity");
+            cookie.del("identity");
+        }
+        this.#onChange();
+    }
 
     #init = async () => {
         this.#google = await google;
@@ -63,7 +73,7 @@ class Auth extends Observable {
 
     // eslint-disable-next-line class-methods-use-this
     #handleCredentialResponse = async (response) => {
-        storage.set("identity", await (await fetch("/auth/login", {
+        this.#save(await (await fetch("/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: response.credential }),
@@ -86,7 +96,7 @@ class Auth extends Observable {
 
     async logout() {
         this.#google.accounts.id.disableAutoSelect();
-        storage.set("identity", null);
+        this.#save(null);
     }
 
     syncCookie() {
