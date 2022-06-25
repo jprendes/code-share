@@ -93,7 +93,6 @@ module.exports = {
     },
     devServer: {
         allowedHosts: "all",
-        compress: true,
         port: 8088,
         client: {
             overlay: true,
