@@ -13,6 +13,8 @@ const Compiler = require("./Compiler.js");
 const { PARALLEL_RUNS } = require("./config.js");
 const TaskQueue = require("./utils/TaskQueue.js");
 
+const { DEFAULT_PUBLIC } = require("./config.js");
+
 function msg(type, payload = {}) {
     return { type, payload };
 }
@@ -71,10 +73,22 @@ class Room extends Observable {
 
     get name() { return this.#name; }
 
+    #visibility = DEFAULT_PUBLIC ? "public" : "private";
+    get visibility() { return this.#visibility; }
+    set visibility(vis) {
+        if (vis === this.visibility) return;
+        if (vis !== "private" && vis !== "public") return;
+        this.#visibility = vis;
+        this.#save();
+        this.broadcast(this.#visibilityMessage());
+        this.emit("visibility", []);
+    }
+
     #save = () => {
         db.set(this.name, {
             compileOutput: this.#compiler.output,
             language: this.#compiler.language,
+            visibility: this.visibility,
         });
     };
 
@@ -90,8 +104,10 @@ class Room extends Observable {
             const {
                 compileOutput = this.#compiler.output,
                 language = this.#compiler.language,
+                visibility = this.visibility,
             } = stored || {};
 
+            this.#visibility = visibility;
             this.#compiler.language = language;
             this.#compiler.output = compileOutput;
         } catch (e) {
@@ -99,6 +115,7 @@ class Room extends Observable {
             console.warn(e);
         }
 
+        this.broadcast(this.#visibilityMessage());
         this.broadcast(this.#languageMessage());
         this.broadcast(this.#compilingMessage());
     };
@@ -164,6 +181,7 @@ class Room extends Observable {
             this.#connections.delete(conn);
         });
 
+        send(conn, this.#visibilityMessage());
         send(conn, this.#languageMessage());
         send(conn, this.#compilingMessage());
         send(conn, this.#clientsMessage());
@@ -219,6 +237,8 @@ class Room extends Observable {
             conn.send(m);
         }
     }
+
+    #visibilityMessage = () => msg("visibility", this.visibility);
 
     #languageMessage = () => msg("language", this.#compiler.language);
 

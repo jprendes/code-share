@@ -77,7 +77,9 @@ server.http("error/invalid-room", async (req, res) => {
 
 server.http("~/has/:roomName", async (req, res, { roomName }) => {
     const exists = await Room.has(roomName);
-    sendJSON(res, exists);
+    if (!exists) sendJSON(res, false);
+    const room = await Room.byName(roomName);
+    sendJSON(res, room.visibility);
 });
 
 server.http("~/room/:roomName/:path(.*)?", (req, res, { roomName, path = "" }) => {
@@ -96,23 +98,34 @@ server.http("~/:path(.*)", (req, res) => {
 });
 
 server.ws("~/doc/:docName", async (conn, req, { docName }) => {
+    const closeWith = (payload) => {
+        conn.send(JSON.stringify({ type: "error", payload }));
+        conn.close();
+    };
+
     const sessionId = session(req);
     if (!sessionId) {
-        conn.close();
+        closeWith("invalid_session");
         return;
     }
 
     if (docName.length < 4) {
-        conn.close();
+        closeWith("invalid_room");
         return;
     }
 
     if (!auth.authorized(req) && !await Room.has(docName)) {
-        conn.close();
+        closeWith("login_required");
         return;
     }
 
     const room = await Room.byName(docName);
+
+    if (room.visibility !== "public" && !auth.authorized(req)) {
+        closeWith("login_required");
+        return;
+    }
+
     room.connect(conn, sessionId);
 
     await HttpServer.wait(conn);

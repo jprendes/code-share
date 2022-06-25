@@ -13,6 +13,7 @@ const HTTPS = !!env.HTTPS && env.HTTPS !== "0";
 const HOST = env.HOST || "0.0.0.0";
 const PORT = parseInt(env.PORT, 10) || 8080;
 const GAPI_CLIENT_ID = env.GAPI_CLIENT_ID || "";
+const DEFAULT_PUBLIC = !!env.DEFAULT_PUBLIC && env.DEFAULT_PUBLIC !== "0";
 
 module.exports = {
     DB_ROOT,
@@ -26,4 +27,5 @@ module.exports = {
     HOST,
     PORT,
     GAPI_CLIENT_ID,
+    DEFAULT_PUBLIC,
 };
