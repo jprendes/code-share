@@ -66,6 +66,11 @@ class CodeShare extends LitElement {
         this.#machine.start();
     }
 
+    #on(emitter, evt, f) {
+        emitter.on(evt, f);
+        this.#machine.own(() => emitter.off(evt, f));
+    }
+
     #machine = new StateMachine({
         start: async (next) => {
             this.#renderLoading();
@@ -90,7 +95,7 @@ class CodeShare extends LitElement {
         auth: async (next) => {
             if (auth.authorized) return next("load-room");
 
-            auth.once("login", () => next("load-room"));
+            this.#on(auth, "login", () => next("load-room"));
 
             this.#renderLogin();
 
