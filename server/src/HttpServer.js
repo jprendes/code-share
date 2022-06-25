@@ -29,7 +29,7 @@ function massageRoute(route) {
 
 function isClosed(conn) {
     if (conn instanceof ServerResponse) return conn.writableEnded;
-    if (conn instanceof WebSocket) return ![conn.CLOSING, conn.CLOSED].includes(conn.readyState);
+    if (conn instanceof WebSocket) return [conn.CLOSING, conn.CLOSED].includes(conn.readyState);
     if (conn instanceof Duplex) return conn.writableEnded;
     throw new Error("Expected http response, WebSocket, or duplex socket");
 }
