@@ -76,14 +76,14 @@ class CollabLogin extends LitElement {
                 <overlay-trigger placement="bottom" offset="0">
                     <img id="avatar" slot="trigger" src=${user.photo}></img>
                     <sp-popover slot="click-content" direction="bottom" tip>
-                        <div id="login-popover-content" style="text-align: center;">
-                            <div id="upper-panel" style="padding: 20px 30px; text-align: center;">
+                        <div style="text-align: center;">
+                            <div style="padding: 20px 30px; text-align: center;">
                                 <div style="font-weight: bold; font-size: 1.3em;">${user.name}</div>
                                 <div style="font-size: 0.8em; color: #888;">${user.email}</div>
                             </div>
                             <sp-divider size="s"></sp-divider>
-                            <div id="lower-panel" style="padding: 20px 30px; text-align: center;">
-                                <sp-action-button id="logout"
+                            <div style="padding: 20px 30px; text-align: center;">
+                                <sp-action-button
                                     style=${redBtnStyle}
                                     quiet
                                     emphasized
