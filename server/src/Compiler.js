@@ -88,11 +88,11 @@ class Compiler extends Observable {
         return {
             c: {
                 extension: "c",
-                commands: ["clang -o main main.c", "./main"],
+                commands: ["clang -pthread -o main main.c", "./main"],
             },
             cpp: {
                 extension: "cpp",
-                commands: ["clang++ -std=c++17 -o main main.cpp", "./main"],
+                commands: ["clang++ -pthread -std=c++17 -o main main.cpp", "./main"],
             },
             rust: {
                 extension: "rs",
