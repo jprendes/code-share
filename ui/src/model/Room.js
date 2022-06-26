@@ -30,26 +30,30 @@ export default class Room extends Observable {
 
         this.#provider.on("message", this.#onMessage);
 
-        this.#provider.on("status", this.#onProviderStatus);
-        this.#provider.on("status", this.#setupTimer);
-
         this.#timer.timeout = 15e3;
         this.#timer.on("tick", this.#onAuthTimerTick);
 
-        auth.on("change", this.#onAuthChange);
-        this.#onAuthChange();
+        this.#provider.on("status", this.#onProviderStatus);
+        this.#provider.on("status", this.#handleHeartbeat);
+        auth.on("change", this.#handleHeartbeat);
+
+        this.#handleHeartbeat();
 
         this.#provider.awareness.setLocalStateField("collab-ready", { random: Math.random().toString(16).slice(2) });
         window.addEventListener("beforeunload", this.#beforeUnload, false);
     };
 
-    #onAuthChange = () => {
+    #handleHeartbeat = () => {
         if (auth.authorized) {
-            this.#timer.start();
-            this.#send("auth", auth.user.uuid);
+            if (this.#provider.wsconnected) {
+                this.#timer.start();
+                this.#send("auth", auth.user.uuid);
+            }
         } else {
             this.#timer.stop();
-            this.#send("auth", null);
+            if (this.#provider.wsconnected) {
+                this.#send("auth", null);
+            }
         }
     };
 
@@ -87,14 +91,6 @@ export default class Room extends Observable {
         if (visibility === this.visibility) return;
         this.#visibility = visibility;
         this.emit("visibility", [this.visibility]);
-    };
-
-    #setupTimer = ({ status }) => {
-        if (status !== "disconnected") {
-            this.#timer.stop();
-        } else if (auth.authorized) {
-            this.#timer.start();
-        }
     };
 
     #onProviderStatus = ({ status }) => {
@@ -276,7 +272,7 @@ export default class Room extends Observable {
     }
 
     destroy() {
-        auth.off("change", this.#onAuthChange);
+        auth.off("change", this.#handleHeartbeat);
 
         this.#provider.disconnect();
 
