@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 const { createServer: createHttpServer, ServerResponse, STATUS_CODES } = require("http");
 const { createServer: createHttpsServer } = require("https");
+const { parse } = require("url");
 const { Server: WsServer, WebSocket } = require("ws");
 const { match } = require("path-to-regexp");
 const { Duplex } = require("stream");
@@ -238,13 +239,32 @@ class HttpServer {
         });
     };
 
-    async listen(opts = {}) {
+    async listen(address, opts = {}) {
+        let url;
+        try {
+            url = parse(address);
+        } catch (e) {
+            throw new Error(`Invalid listening url ${JSON.stringify(address)}`);
+        }
+        if (!["tcp:", "unix:"].includes(url.protocol)) {
+            throw new Error(`Invalid listening url ${JSON.stringify(address)}`);
+        }
         await this.#initialized;
-        this.#server.listen({
-            host: "0.0.0.0",
-            port: 8080,
-            ...opts,
-        });
+        if (url.protocol === "tcp:") {
+            opts = {
+                host: url.hostname,
+                posrt: parseInt(url.port, 10),
+                ...opts,
+            };
+        } else if (url.protocol === "unix:") {
+            opts = {
+                path: url.pathname,
+                ...opts,
+            };
+        } else {
+            // unreachable
+        }
+        this.#server.listen(opts);
     }
 
     static wait(conn) {

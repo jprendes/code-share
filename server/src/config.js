@@ -9,9 +9,8 @@ const UI_HOST = env.UI_HOST || "localhost";
 const UI_PORT = parseInt(env.UI_PORT, 10) || 8088;
 const UI_TITLE = env.UI_TITLE || "Code Share";
 const PARALLEL_RUNS = parseInt(env.PARALLEL_RUNS, 10) || 32;
-const HTTPS = !!env.HTTPS && env.HTTPS !== "0";
-const HOST = env.HOST || "0.0.0.0";
-const PORT = parseInt(env.PORT, 10) || 8080;
+const LISTEN = (env.LISTEN || "tcp://0.0.0.0:8080").replace(/^https?:/, "tcp:");
+const HTTPS = (!!env.HTTPS && env.HTTPS !== "0") || (env.LISTEN || "").startsWith("https:");
 const GAPI_CLIENT_ID = env.GAPI_CLIENT_ID || "";
 const DEFAULT_PUBLIC = !!env.DEFAULT_PUBLIC && env.DEFAULT_PUBLIC !== "0";
 
@@ -24,8 +23,7 @@ module.exports = {
     UI_TITLE,
     PARALLEL_RUNS,
     HTTPS,
-    HOST,
-    PORT,
+    LISTEN,
     GAPI_CLIENT_ID,
     DEFAULT_PUBLIC,
 };

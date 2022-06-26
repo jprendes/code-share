@@ -14,7 +14,7 @@ const cookie = require("./utils/cookie.js");
 const sendJSON = require("./utils/sendJSON.js");
 
 const {
-    UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT, GAPI_CLIENT_ID,
+    UI_ROOT, UI_HOST, UI_PORT, HTTPS, LISTEN, GAPI_CLIENT_ID,
 } = require("./config.js");
 const AuthWatchdog = require("./AuthWatchdog.js");
 
@@ -131,5 +131,7 @@ server.ws("~/doc/:docName", async (conn, req, { docName }) => {
     await HttpServer.wait(conn);
 });
 
-server.listen({ host: HOST, port: PORT });
-console.log(`running at http://${HOST !== "0.0.0.0" ? HOST : "localhost"}:${PORT}/`);
+server.listen(LISTEN);
+console.log(`running at ${LISTEN
+    .replace(/^tcp:\/\/0.0.0.0/, "tcp://localhost")
+    .replace(/^tcp:/, HTTPS ? "https:" : "http")}`);
