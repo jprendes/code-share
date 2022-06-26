@@ -209,6 +209,12 @@ class Room extends Observable {
             case "cancel-compile": { this.killCompile(); break; }
             case "language": { this.language = m.payload; break; }
             case "auth": { authorization.tick(m.payload); break; }
+            case "visibility": {
+                if (authorization.authorized) {
+                    this.visibility = m.payload;
+                }
+                break;
+            }
             default: console.warn(`Received unknown message type ${m.type}`);
             }
         });

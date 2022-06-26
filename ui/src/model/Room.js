@@ -112,6 +112,13 @@ export default class Room extends Observable {
 
     #visibility = "public";
     get visibility() { return this.#visibility; }
+    set visibility(visibility) {
+        if (visibility === this.#visibility) return;
+        if (visibility !== "public" && visibility !== "private") return;
+        this.#visibility = visibility;
+        this.#send("visibility", visibility);
+        this.emit("visibility", [this.visibility]);
+    }
 
     get ready() {
         if (this.#isReady) {
