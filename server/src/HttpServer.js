@@ -258,7 +258,11 @@ class HttpServer {
                 ...opts,
             };
         } else if (url.protocol === "unix:") {
-            await unlink(url.pathname);
+            try {
+                await unlink(url.pathname);
+            } catch (e) {
+                // no-op
+            }
             opts = {
                 path: url.pathname,
                 ...opts,
