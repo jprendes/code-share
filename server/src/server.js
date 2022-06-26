@@ -78,7 +78,10 @@ server.http("error/invalid-room", async (req, res) => {
 
 server.http("~/has/:roomName", async (req, res, { roomName }) => {
     const exists = await Room.has(roomName);
-    if (!exists) sendJSON(res, false);
+    if (!exists) {
+        sendJSON(res, false);
+        return;
+    }
     const room = await Room.byName(roomName);
     sendJSON(res, room.visibility);
 });
