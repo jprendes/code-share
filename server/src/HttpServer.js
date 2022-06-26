@@ -6,6 +6,7 @@ const { Server: WsServer, WebSocket } = require("ws");
 const { match } = require("path-to-regexp");
 const { Duplex } = require("stream");
 const selfsigned = require("selfsigned");
+const rimraf = require("rimraf");
 
 const DB = require("./DB.js");
 
@@ -257,6 +258,9 @@ class HttpServer {
                 ...opts,
             };
         } else if (url.protocol === "unix:") {
+            await new Promise((resolve) => {
+                rimraf(url.pathname, resolve);
+            });
             opts = {
                 path: url.pathname,
                 ...opts,
