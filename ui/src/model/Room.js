@@ -8,11 +8,14 @@ import { indexToColor } from "../utils/colors.js";
 import { WebsocketProvider } from "../yjs/y-websocket.js";
 import { MonacoBinding } from "../yjs/y-monaco.js";
 import { QuillBinding } from "../yjs/y-quill.js";
+import auth from "../utils/Auth.js";
+import Timer from "./Timer.js";
 
 export default class Room extends Observable {
     #doc = new Y.Doc();
     #persistence = null;
     #provider = null;
+    #timer = new Timer();
 
     constructor(server, name) {
         super();
@@ -28,9 +31,30 @@ export default class Room extends Observable {
         this.#provider.on("message", this.#onMessage);
 
         this.#provider.on("status", this.#onProviderStatus);
+        this.#provider.on("status", this.#setupTimer);
+
+        this.#timer.timeout = 15e3;
+        this.#timer.on("tick", this.#onAuthTimerTick);
+
+        auth.on("change", this.#onAuthChange);
+        this.#onAuthChange();
 
         this.#provider.awareness.setLocalStateField("collab-ready", { random: Math.random().toString(16).slice(2) });
         window.addEventListener("beforeunload", this.#beforeUnload, false);
+    };
+
+    #onAuthChange = () => {
+        if (auth.authorized) {
+            this.#timer.start();
+            this.#send("auth", auth.user.uuid);
+        } else {
+            this.#timer.stop();
+            this.#send("auth", null);
+        }
+    };
+
+    #onAuthTimerTick = () => {
+        this.#send("auth", auth.user?.uuid);
     };
 
     #onMessage = (str) => {
@@ -46,9 +70,18 @@ export default class Room extends Observable {
 
     #isReady = false;
     #onReady = () => {
+        delete this.then;
+        this.#isReady = true;
         this.emit("ready", []);
         this.emit("status", [{ status: "ready" }]);
-        this.#isReady = true;
+    };
+
+    #setupTimer = ({ status }) => {
+        if (status !== "disconnected") {
+            this.#timer.stop();
+        } else if (auth.authorized) {
+            this.#timer.start();
+        }
     };
 
     #onProviderStatus = ({ status }) => {
@@ -56,6 +89,12 @@ export default class Room extends Observable {
         this.emit("disconnected", []);
         this.emit("status", [{ status: "disconnected" }]);
         this.#isReady = false;
+    };
+
+    // Make class awaitable
+    then = (onSuccess, onError) => {
+        this.once("ready", () => onSuccess(this));
+        this.once("error", (id) => onError(new Error(id)));
     };
 
     get ready() {
@@ -144,7 +183,11 @@ export default class Room extends Observable {
     }
 
     #send = (type, payload = null) => {
-        this.#provider.send(JSON.stringify({ type, payload }));
+        try {
+            this.#provider.send(JSON.stringify({ type, payload }));
+        } catch (err) {
+            // ignore error due to disconnected socket
+        }
     };
 
     #language = "";
@@ -210,6 +253,8 @@ export default class Room extends Observable {
     }
 
     destroy() {
+        auth.off("change", this.#onAuthChange);
+
         this.#provider.disconnect();
 
         for (const binding of this.#codeBindings) {
@@ -222,6 +267,7 @@ export default class Room extends Observable {
         }
         this.#textBindings.clear();
 
+        this.#timer.destroy();
         this.#provider.destroy();
         this.#persistence.destroy();
         this.#doc.destroy();
