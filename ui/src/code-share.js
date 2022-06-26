@@ -71,6 +71,11 @@ class CodeShare extends LitElement {
         this.#machine.own(() => emitter.off(evt, f));
     }
 
+    #interval(fcn, ms) {
+        const interval = setInterval(fcn, ms);
+        this.#machine.own(() => clearInterval(interval));
+    }
+
     #machine = new StateMachine({
         start: async (next) => {
             this.#renderLoading();
@@ -82,56 +87,95 @@ class CodeShare extends LitElement {
                 return next("wait-auth");
             }
 
-            if (!await hasRoom(name)) {
+            if (await hasRoom(name) !== "public") {
                 return next("wait-auth");
             }
 
             return next("load-room");
         },
         "wait-auth": async (next) => {
+            this.#renderLoading();
             await auth;
             next("auth");
         },
         auth: async (next) => {
-            if (auth.authorized) return next("load-room");
+            const { name } = this.#machine.context;
 
-            this.#on(auth, "login", () => next("load-room"));
+            if (auth.authorized) return next(name ? "load-room" : "create-room");
+            this.#on(auth, "login", () => next(name ? "load-room" : "create-room"));
 
-            this.#renderLogin();
+            let message = "You must be logged in to create new rooms";
+            if (name) {
+                message = "You must be logged in to access private rooms";
+            }
+
+            this.#renderLogin(message);
+
+            this.#interval(async () => {
+                if (!name) return;
+                if (await hasRoom(name) !== "public") return;
+                // looks like the room suddenly became available!
+                next("load-room");
+            }, 10e3);
 
             return null;
         },
-        "load-room": async (next) => {
+        "create-room": async (next) => {
             this.#renderLoading();
 
-            const { name } = this.#machine.context;
-            if (!name) return next("create-room");
-
-            return next("show-room");
-        },
-        "create-room": async (next) => {
             try {
                 const name = await makeRoomName();
                 this.#machine.context.name = name;
-                next("show-room");
+                next("load-room");
             } catch (err) {
                 this.#machine.context.error = err;
                 next("create-error");
             }
         },
-        "show-room": async (next) => {
+        "load-room": async (next) => {
+            this.#renderLoading();
+
             const server = `${global.location.protocol === "http:" ? "ws:" : "wss:"}//${global.location.host}/doc/`;
             const { name } = this.#machine.context;
             const room = new Room(server, name);
 
-            await room.ready;
+            this.#on(auth, "logout", () => console.log("logged out!"));
 
+            try {
+                await room;
+            } catch ({ message }) {
+                room.destroy();
+                switch (message) {
+                case "login_required": return next("wait-auth");
+                default: return next("load-error");
+                }
+            }
+
+            return next("show-room", room);
+        },
+        "show-room": async (next, room) => {
             this.#renderRoom(room);
 
-            next();
+            this.#on(auth, "logout", () => console.log("logged out!"));
+            this.#on(room, "error", async (id) => {
+                room.destroy();
+                if (id === "login_required") {
+                    next("wait-auth");
+                } else {
+                    next("room-error");
+                }
+            });
         },
         "create-error": async (next) => {
-            this.#renderError("Error trying to create a new room");
+            this.#renderError("Error creating the room");
+            next();
+        },
+        "load-error": async (next) => {
+            this.#renderError("Error loading the room");
+            next();
+        },
+        "room-error": async (next) => {
+            this.#renderError("Unexpected error");
             next();
         },
     });
@@ -150,12 +194,12 @@ class CodeShare extends LitElement {
     #renderLoading = () => this.#render(html`<collab-loading>Loading...</collab-loading>`);
 
     // eslint-disable-next-line class-methods-use-this
-    #renderLogin = () => this.#render(html`
+    #renderLogin = (message = "You must be logged in to create new rooms") => this.#render(html`
         <collab-error
             icon="person"
             code="hi!"
             status="Log-in required"
-            message="You must be logged in to create new rooms"
+            message=${message}
         >
             <collab-login></collab-login>
         </collab-error>
