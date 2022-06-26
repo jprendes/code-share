@@ -16,6 +16,7 @@ const sendJSON = require("./utils/sendJSON.js");
 const {
     UI_ROOT, UI_HOST, UI_PORT, HTTPS, HOST, PORT, GAPI_CLIENT_ID,
 } = require("./config.js");
+const AuthWatchdog = require("./AuthWatchdog.js");
 
 const server = new HttpServer({
     https: HTTPS,
@@ -121,12 +122,11 @@ server.ws("~/doc/:docName", async (conn, req, { docName }) => {
 
     const room = await Room.byName(docName);
 
-    if (room.visibility !== "public" && !auth.authorized(req)) {
-        closeWith("login_required");
-        return;
-    }
+    const authorization = new AuthWatchdog(auth);
+    conn.on("close", () => authorization.destroy());
+    authorization.tick(req);
 
-    room.connect(conn, sessionId);
+    room.connect(conn, sessionId, authorization);
 
     await HttpServer.wait(conn);
 });

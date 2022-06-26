@@ -161,7 +161,9 @@ class Room extends Observable {
 
     #identities = new Map();
     #connections = new Map();
-    connect(conn, uuid) {
+    connect(conn, uuid, authorization) {
+        if (!this.#checkAuth(conn, authorization)) return;
+
         let identity = this.#identities.get(uuid);
         if (!identity) {
             // If the identity doesn't exist yet in the room, create a new one
@@ -176,10 +178,8 @@ class Room extends Observable {
 
         identity.connect(conn);
 
-        this.#connections.set(conn, identity);
-        conn.on("close", () => {
-            this.#connections.delete(conn);
-        });
+        this.#connections.set(conn, { identity, authorization });
+        conn.on("close", () => this.#connections.delete(conn));
 
         send(conn, this.#visibilityMessage());
         send(conn, this.#languageMessage());
@@ -189,6 +189,11 @@ class Room extends Observable {
         setupWSConnection(conn, this.#doc);
 
         send(conn, msg("ready"));
+
+        const checkAuth = () => this.#checkAuth(conn);
+        authorization.on("unauthorized", checkAuth);
+        this.on("visibility", checkAuth);
+        conn.on("close", () => conn.off("visibility", checkAuth));
 
         conn.on("message", (data, isBinary) => {
             if (isBinary) return;
@@ -203,21 +208,25 @@ class Room extends Observable {
             case "compile": { this.compile(); break; }
             case "cancel-compile": { this.killCompile(); break; }
             case "language": { this.language = m.payload; break; }
+            case "auth": { authorization.tick(m.payload); break; }
             default: console.warn(`Received unknown message type ${m.type}`);
             }
         });
     }
 
+    #checkAuth = (conn, authorization = this.#connections.get(conn)?.authorization) => {
+        if (this.visibility === "public") return true;
+        if (authorization?.authorized) return true;
+        send(conn, this.#loginRequiredMessage());
+        conn.close();
+        return false;
+    };
+
     #onAwarenessChange = ({ added, removed, updated }, conn) => {
-        added.forEach((clientId) => {
-            this.#connections.get(conn)?.clients.add(clientId.toString());
-        });
-        updated.forEach((clientId) => {
-            this.#connections.get(conn)?.clients.add(clientId.toString());
-        });
-        removed.forEach((clientId) => {
-            this.#connections.get(conn)?.clients.delete(clientId.toString());
-        });
+        const clients = this.#connections.get(conn)?.identity.clients;
+        added.forEach((clientId) => clients?.add(`${clientId}`));
+        updated.forEach((clientId) => clients?.add(`${clientId}`));
+        removed.forEach((clientId) => clients?.delete(`${clientId}`));
         this.broadcast(this.#clientsMessage());
     };
 
@@ -237,6 +246,9 @@ class Room extends Observable {
             conn.send(m);
         }
     }
+
+    // eslint-disable-next-line class-methods-use-this
+    #loginRequiredMessage = () => msg("error", "login_required");
 
     #visibilityMessage = () => msg("visibility", this.visibility);
 
