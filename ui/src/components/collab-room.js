@@ -12,7 +12,7 @@ import "@spectrum-web-components/toast/sp-toast.js";
 import "./collab-identities-list.js";
 import "./collab-compile-btn.js";
 import "./collab-language-btns.js";
-import "./collab-login.js";
+import "./collab-user.js";
 
 import auth from "../utils/Auth.js";
 
@@ -55,7 +55,7 @@ class CollabRoom extends LitElement {
             text-overflow: ellipsis;
         }
 
-        collab-login {
+        collab-user {
             margin-left: 10px;
             display: inline-block;
         }
@@ -233,9 +233,7 @@ class CollabRoom extends LitElement {
                     </div>
                     <div id="room-name">${this.#room?.name || ""}</div>
                     <collab-identities-list .room=${this.#room}></collab-identities-list>
-                    ${!auth.authorized ? html`` : html`
-                        <collab-login></collab-login>
-                    `}
+                    <collab-user></collab-user>
                 </div>
                 <div id="content">
                     <div id="text">
