@@ -253,7 +253,7 @@ class HttpServer {
         if (url.protocol === "tcp:") {
             opts = {
                 host: url.hostname,
-                posrt: parseInt(url.port, 10),
+                port: parseInt(url.port, 10),
                 ...opts,
             };
         } else if (url.protocol === "unix:") {
