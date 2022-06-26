@@ -12,6 +12,8 @@ const CLIENT_ID = `${CLIENT_ID_BASE}.apps.googleusercontent.com`;
 class Auth extends Observable {
     #google = null;
     #id = null;
+    #oauth2 = null;
+    #client = null;
 
     #user = null;
 
@@ -67,6 +69,12 @@ class Auth extends Observable {
             auto_select: true,
             login_uri: globalThis.location.origin,
         });
+        this.#oauth2 = this.#google.accounts.oauth2;
+        this.#client = google.accounts.oauth2.initTokenClient({
+            client_id: CLIENT_ID,
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+            callback: this.#handleOauthResponse,
+        });
         delete this.then;
         this.emit("loaded", []);
     };
@@ -77,6 +85,14 @@ class Auth extends Observable {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: response.credential }),
+        })).json());
+    };
+
+    #handleOauthResponse = async (response) => {
+        this.#save(await (await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: response.access_token }),
         })).json());
     };
 
@@ -91,7 +107,12 @@ class Auth extends Observable {
         if (!this.loaded) return;
         // Clear the g_state cookie to avoid a potential exponential cooldown.
         cookie.del("g_state");
-        this.#id.prompt();
+        this.#id.prompt((notification) => {
+            if (notification.isNotDisplayed()) {
+                // OneTap didn't work, try the pop-up
+                this.#client.requestAccessToken();
+            }
+        });
     }
 
     async logout() {
