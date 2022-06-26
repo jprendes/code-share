@@ -1,4 +1,4 @@
-const { STATUS_CODES } = require("http");
+const { STATUS_CODES, IncomingMessage } = require("http");
 const { Observable } = require("lib0/observable");
 const cookie = require("./utils/cookie.js");
 const sendJSON = require("./utils/sendJSON.js");
@@ -55,14 +55,14 @@ class Auth extends Observable {
         return handler(req, res);
     }
 
-    user(req) {
-        const uuid = cookie.get(req, "identity");
+    user(uuid) {
+        if (uuid instanceof IncomingMessage) uuid = cookie.get(uuid, "identity");
         const user = this.#users.byUuid(uuid);
         return user || null;
     }
 
-    authorized(req) {
-        return !!this.user(req);
+    authorized(uuid) {
+        return !!this.user(uuid);
     }
 
     #serve_login = async (req, res) => {
