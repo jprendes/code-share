@@ -65,6 +65,7 @@ export default class Room extends Observable {
         case "language": { this.#onLanguage(payload); break; }
         case "ready": { this.#onReady(); break; }
         case "error": { this.#onError(payload); break; }
+        case "visibility": { this.#onVisibility(payload); break; }
         default: // unreachable
         }
     };
@@ -80,6 +81,12 @@ export default class Room extends Observable {
     #onError = (id) => {
         this.emit("error", [id]);
         this.emit("status", [{ status: "error", error: id }]);
+    };
+
+    #onVisibility = (visibility) => {
+        if (visibility === this.visibility) return;
+        this.#visibility = visibility;
+        this.emit("visibility", [this.visibility]);
     };
 
     #setupTimer = ({ status }) => {
@@ -102,6 +109,9 @@ export default class Room extends Observable {
         this.once("ready", () => onSuccess(this));
         this.once("error", (id) => onError(new Error(id)));
     };
+
+    #visibility = "public";
+    get visibility() { return this.#visibility; }
 
     get ready() {
         if (this.#isReady) {
