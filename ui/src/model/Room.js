@@ -64,6 +64,7 @@ export default class Room extends Observable {
         case "compiling": { this.#onCompiling(payload); break; }
         case "language": { this.#onLanguage(payload); break; }
         case "ready": { this.#onReady(); break; }
+        case "error": { this.#onError(payload); break; }
         default: // unreachable
         }
     };
@@ -74,6 +75,11 @@ export default class Room extends Observable {
         this.#isReady = true;
         this.emit("ready", []);
         this.emit("status", [{ status: "ready" }]);
+    };
+
+    #onError = (id) => {
+        this.emit("error", [id]);
+        this.emit("status", [{ status: "error", error: id }]);
     };
 
     #setupTimer = ({ status }) => {
