@@ -13,6 +13,7 @@ import "./collab-identities-list.js";
 import "./collab-compile-btn.js";
 import "./collab-language-btns.js";
 import "./collab-user.js";
+import "./collab-lock.js";
 
 import auth from "../utils/Auth.js";
 
@@ -34,7 +35,7 @@ class CollabRoom extends LitElement {
             padding-bottom: 10px;
             display: grid;
             grid-template-rows: 100%;
-            grid-template-columns: auto minmax(0, 1fr) auto auto;
+            grid-template-columns: auto minmax(0, 1fr) auto auto auto;
             align-items: center;
         }
 
@@ -233,6 +234,7 @@ class CollabRoom extends LitElement {
                     </div>
                     <div id="room-name">${this.#room?.name || ""}</div>
                     <collab-identities-list .room=${this.#room}></collab-identities-list>
+                    ${!auth.authorized ? html`` : html`<collab-lock .room=${this.#room}></collab-lock>`}
                     <collab-user></collab-user>
                 </div>
                 <div id="content">
