@@ -56,7 +56,7 @@ server {
 }
 EOF
 
-ln -s \
+ln -sf \
     /etc/nginx/sites-available/code-share_$DOMAIN.conf \
     /etc/nginx/sites-enabled/code-share_$DOMAIN.conf
 
