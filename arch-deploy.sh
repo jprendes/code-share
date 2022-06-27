@@ -19,7 +19,7 @@ case "$2" in
 esac
 
 # Install requirements
-pacman -S docker nginx certbot certbot-nginx
+pacman -S --noconfirm docker nginx certbot certbot-nginx
 systemctl enable nginx --now
 systemctl enable certbot-renew.timer --now
 
