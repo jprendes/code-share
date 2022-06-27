@@ -25,7 +25,7 @@ systemctl enable certbot-renew.timer --now
 
 # Configure nginx
 mkdir -p /etc/nginx/sites-enabled /etc/nginx/sites-available
-cp -no-clobber /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
+cp --no-clobber /etc/nginx/nginx.conf /etc/nginx/nginx.conf.orig
 
 cat << EOF > /etc/nginx/nginx.conf
 worker_processes  1;
