@@ -69,6 +69,7 @@ sudo certbot install --cert-name $DOMAIN
 docker build -t code-share .
 
 docker kill code-share-server 2> /dev/null
+docker container rm code-share-server 2> /dev/null
 docker run \
     -d --restart unless-stopped \
     --name code-share-server \
